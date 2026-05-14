@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kicks & Finds — Pre-loved · Mombasa</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIGURATION — Edit these 4 values before deploying
+   ═══════════════════════════════════════════════════════ */
+const CONFIG = {
+  ADMIN_PIN:  "1234",             // ← your admin PIN
+  WHATSAPP:   "254700000000",     // ← your WhatsApp (with country code)
+  SHEETS_URL: "",                 // ← paste Apps Script URL here after setup
+};
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--gold:#c8a96e;--dark:#1a1a1a;--dark2:#2d2420;--green:#2d6a4f;--red:#c0392b;--bg:#f7f4f0;--border:#e2ddd6;--wa:#25D366;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideR{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+header{background:var(--dark);position:sticky;top:0;z-index:200;box-shadow:0 2px 24px rgba(0,0,0,.3);}
+.hdr{max-width:1120px;margin:0 auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.logo-area{display:flex;align-items:center;gap:11px;cursor:pointer;position:relative;}
+.logo-ring{width:48px;height:48px;border-radius:50%;border:2.5px solid var(--gold);overflow:hidden;background:#2a2420;flex-shrink:0;box-shadow:0 0 16px rgba(200,169,110,.3);position:relative;cursor:pointer;}
+.logo-ring canvas{display:block;width:100%;height:100%;}
+.logo-ring::after{content:"📷";position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;transition:opacity .2s;border-radius:50%;}
+.logo-ring:hover::after{opacity:1;}
+.logo-txt .name{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.15;}
+.logo-txt .name em{color:var(--gold);font-style:normal;}
+.logo-txt .sub{font-size:10px;color:#666;letter-spacing:.16em;text-transform:uppercase;}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.hdr-count{font-size:12px;color:#666;font-weight:600;}
+.btn-sm{padding:7px 15px;border-radius:8px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;border:1.5px solid;}
+.btn-admin{border-color:#444;background:transparent;color:#888;}
+.btn-admin.on{background:var(--gold);color:var(--dark);border-color:var(--gold);}
+.btn-cats{border-color:#333;background:transparent;color:#777;display:none;}
+
+.ticker{background:linear-gradient(135deg,var(--dark),var(--dark2));padding:13px;text-align:center;}
+.ticker p{color:var(--gold);font-size:11px;letter-spacing:.22em;text-transform:uppercase;}
+
+.controls{max-width:1120px;margin:0 auto;padding:22px 18px 0;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.search-wrap{flex:1;min-width:200px;position:relative;}
+.search-wrap input{width:100%;padding:11px 14px 11px 36px;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;background:#fff;outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:var(--gold);}
+.search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#bbb;font-size:15px;pointer-events:none;}
+.pills{display:flex;gap:7px;flex-wrap:wrap;}
+.pill{padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;transition:all .18s;border:1.5px solid var(--border);background:#fff;color:#777;}
+.pill.on{background:var(--gold);color:var(--dark);border-color:var(--gold);}
+
+.status-wrap{max-width:1120px;margin:0 auto;padding:0 18px;}
+.admin-bar-inner{background:#fff8ec;border:1.5px dashed var(--gold);border-radius:10px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;}
+.admin-bar-inner span{font-size:12.5px;color:#9a6f28;font-weight:600;}
+.add-btn{background:var(--dark);color:var(--gold);border:none;border-radius:8px;padding:8px 18px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
+.sheets-connected{background:#eaf5ef;border:1.5px solid #a8d5b8;border-radius:9px;padding:8px 14px;font-size:12px;color:var(--green);font-weight:600;margin-top:8px;display:flex;align-items:center;gap:6px;}
+.sheets-row{background:#f9f0e6;border:1.5px dashed #d9a84e;border-radius:9px;padding:8px 14px;font-size:12px;color:#9a6f28;font-weight:600;margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sheets-row input{flex:1;min-width:180px;padding:5px 9px;border:1px solid #d9a84e;border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;color:#333;}
+.sheets-row button{background:var(--dark);color:var(--gold);border:none;border-radius:6px;padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+main{max-width:1120px;margin:0 auto;padding:22px 18px 70px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:22px;}
+.empty{text-align:center;padding:80px 0;color:#bbb;font-family:'Playfair Display',serif;font-size:22px;}
+
+.card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 14px rgba(0,0,0,.07);display:flex;flex-direction:column;transition:box-shadow .22s,transform .22s;animation:fadeUp .4s ease both;}
+.card:hover{box-shadow:0 12px 38px rgba(0,0,0,.12);transform:translateY(-4px);}
+.img-wrap{position:relative;padding-bottom:120%;background:#f0ede8;overflow:hidden;}
+.img-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+.card:hover .img-wrap img{transform:scale(1.04);}
+.img-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;color:#ddd;}
+.sold-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.36);}
+.sold-tag{background:var(--red);color:#fff;font-weight:800;font-size:12px;letter-spacing:.18em;padding:5px 18px;text-transform:uppercase;border-radius:3px;}
+.cond-tag{position:absolute;top:11px;left:11px;background:rgba(255,255,255,.93);backdrop-filter:blur(4px);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#333;letter-spacing:.04em;}
+.like-btn{position:absolute;top:11px;right:11px;background:rgba(255,255,255,.92);backdrop-filter:blur(4px);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:15px;transition:transform .15s;}
+.like-btn:hover{transform:scale(1.2);}
+.dots{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);display:flex;gap:5px;}
+.dot{height:5px;border-radius:3px;background:rgba(255,255,255,.5);cursor:pointer;transition:all .18s;border:none;padding:0;}
+.dot.on{background:#fff;}
+.card-body{padding:14px 16px 18px;flex:1;display:flex;flex-direction:column;gap:9px;}
+.card-meta{display:flex;justify-content:space-between;align-items:center;}
+.brand-lbl{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;}
+.time-lbl{font-size:11px;color:#bbb;}
+.card-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--dark);line-height:1.35;}
+.card-desc{font-size:12.5px;color:#888;line-height:1.6;}
+.avail{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;}
+.avail.yes{color:var(--green);}
+.avail.no{color:var(--red);}
+.price-lbl{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--dark);}
+.btn-row{display:flex;gap:8px;margin-top:3px;}
+.wa-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--wa);color:#fff;border-radius:10px;padding:11px 0;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;text-decoration:none;border:none;cursor:pointer;transition:opacity .15s;}
+.wa-btn:hover{opacity:.85;}
+.lipa-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--dark);color:var(--gold);border-radius:10px;padding:11px 0;font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;text-decoration:none;border:1.5px solid #2a2a2a;cursor:pointer;transition:background .15s;}
+.lipa-btn:hover{background:#2d2d2d;}
+.admin-btns{display:flex;gap:7px;margin-top:3px;}
+.edit-btn{flex:1;padding:9px;background:#f5f2ee;border:1.5px solid var(--border);border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;color:#444;}
+.del-btn{flex:1;padding:9px;background:#fff0f0;border:1.5px solid #f0c0c0;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--red);}
+
+.drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:none;justify-content:flex-end;}
+.drawer{background:#fff;width:min(460px,100vw);height:100%;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column;animation:slideR .3s ease;}
+.drawer-hdr{background:var(--dark);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.drawer-hdr span{font-family:'Playfair Display',serif;font-size:18px;color:#fff;font-weight:700;}
+.drawer-close{background:none;border:none;color:#777;font-size:22px;cursor:pointer;line-height:1;}
+.drawer-body{padding:22px;flex:1;}
+.sec-title{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.sec-gap{margin-top:24px;}
+.form-row{margin-bottom:13px;}
+.form-row label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:5px;}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:#fff;transition:border-color .2s;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--gold);}
+.form-row textarea{resize:vertical;min-height:80px;}
+.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f7f4f0;border-radius:9px;margin-bottom:13px;}
+.toggle-row span{font-size:13px;font-weight:600;color:#444;}
+.toggle-knob{width:44px;height:24px;border-radius:12px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle-knob .knob{position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.img-previews{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.img-preview{position:relative;width:70px;height:70px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);}
+.img-preview img{width:100%;height:100%;object-fit:cover;}
+.img-preview button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:22px;}
+.upload-zone:hover{border-color:var(--gold);}
+.form-actions{display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border);margin-top:8px;}
+.btn-save{flex:2;background:var(--dark);color:var(--gold);border:none;border-radius:10px;padding:13px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+.btn-cancel{flex:1;background:#f0ede8;color:#555;border:none;border-radius:10px;padding:13px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:center;justify-content:center;animation:fadeIn .2s ease;}
+.modal-bg.show{display:flex;}
+.modal{background:#fff;border-radius:18px;padding:30px 28px;width:min(340px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.22);animation:fadeUp .3s ease;}
+.modal h3{font-family:'Playfair Display',serif;font-size:21px;color:var(--dark);margin-bottom:6px;}
+.modal p{color:#999;font-size:13px;margin-bottom:18px;}
+.pin-inp{width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:24px;letter-spacing:.35em;text-align:center;font-family:monospace;outline:none;margin-bottom:8px;transition:border-color .2s;}
+.pin-inp:focus{border-color:var(--gold);}
+.pin-inp.err{border-color:var(--red);}
+.pin-err{color:var(--red);font-size:12px;margin-bottom:10px;display:none;}
+.unlock-btn{width:100%;background:var(--dark);color:var(--gold);border:none;border-radius:10px;padding:14px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;cursor:pointer;}
+.modal-hint{text-align:center;font-size:11px;color:#bbb;margin-top:8px;}
+.confirm-btns{display:flex;gap:10px;}
+.btn-del-confirm{flex:1;background:var(--red);color:#fff;border:none;border-radius:9px;padding:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-del-cancel{flex:1;background:#f0ede8;color:#555;border:none;border-radius:9px;padding:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.cat-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.cat-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;background:#f0ede8;border-radius:20px;font-size:12px;font-weight:600;color:#555;}
+.cat-chip button{background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;line-height:1;padding:0;}
+.cat-add{display:flex;gap:8px;}
+.cat-add input{flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;}
+.cat-add input:focus{border-color:var(--gold);}
+.cat-add button{background:var(--dark);color:var(--gold);border:none;border-radius:9px;padding:9px 16px;font-weight:700;font-size:13px;cursor:pointer;}
+.logo-drop{border:2px dashed var(--border);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:14px;}
+.logo-drop:hover{border-color:var(--gold);}
+.logo-preview-wrap{display:flex;justify-content:center;margin-bottom:16px;}
+.logo-preview-circ{width:82px;height:82px;border-radius:50%;overflow:hidden;border:3px solid var(--gold);box-shadow:0 0 18px rgba(200,169,110,.3);background:#2a2420;}
+.logo-preview-circ canvas{display:block;width:100%;height:100%;}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--dark);color:var(--gold);padding:11px 24px;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.25);animation:fadeUp .3s ease;pointer-events:none;}
+footer{background:var(--dark);padding:30px 20px;text-align:center;}
+.footer-logo{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);margin-bottom:6px;}
+.footer-sub{color:#555;font-size:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div class="logo-area" onclick="openLogoModal()">
+      <div class="logo-ring" id="logo-ring" title="Click to change logo">
+        <canvas id="logo-canvas" width="96" height="96"></canvas>
+      </div>
+      <div class="logo-txt">
+        <div class="name">Kicks <em>&</em> Finds</div>
+        <div class="sub">Pre-loved · Mombasa</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="hdr-count" id="count-lbl">6 items</span>
+      <button class="btn-sm btn-cats" id="cats-btn" onclick="openCatModal()">🗂️ Cats</button>
+      <button class="btn-sm btn-admin" id="admin-btn" onclick="adminClick()">Admin</button>
+    </div>
+  </div>
+</header>
+
+<div class="ticker"><p>✦ Fresh drops · Lipa Pole Pole available · DM to cop ✦</p></div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="text" id="search" placeholder="Search shoes, bags…" oninput="renderGrid()">
+  </div>
+  <div class="pills" id="pills"></div>
+</div>
+
+<div class="status-wrap">
+  <div id="admin-bar" style="display:none">
+    <div class="admin-bar-inner">
+      <span>✏️ Admin mode — edit listings or add new products. Syncs to Google Sheets.</span>
+      <button class="add-btn" onclick="openDrawer(null)">+ Add Product</button>
+    </div>
+  </div>
+  <div id="sheets-status"></div>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">No items found 👟</div>
+</main>
+
+<footer>
+  <div class="footer-logo">Kicks <span style="color:#fff">&</span> Finds</div>
+  <div class="footer-sub">Pre-loved footwear & finds · Mombasa, Kenya · DM to cop 👟</div>
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid #2a2a2a;font-family:'Playfair Display',serif;font-size:11px;color:#444;letter-spacing:.08em;">Designed <em style="color:#c8a96e;font-style:normal;">& </em>crafted by <span style="color:#c8a96e;font-weight:600;">Sita</span></div>
+</footer>
+
+<!-- PIN MODAL -->
+<div class="modal-bg" id="pin-modal">
+  <div class="modal">
+    <h3>Admin Access</h3>
+    <p>Enter your PIN to manage products</p>
+    <input type="password" class="pin-inp" id="pin-inp" placeholder="••••"
+      oninput="this.classList.remove('err');document.getElementById('pin-err').style.display='none'"
+      onkeydown="if(event.key==='Enter')submitPin()">
+    <div class="pin-err" id="pin-err">Wrong PIN. Try again.</div>
+    <button class="unlock-btn" onclick="submitPin()">Unlock ✓</button>
+    <div class="modal-hint">Change PIN in the CONFIG block at top of file</div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="del-modal">
+  <div class="modal">
+    <h3>Delete Listing?</h3>
+    <p>This permanently removes the product from the shop and from Google Sheets.</p>
+    <div class="confirm-btns">
+      <button class="btn-del-confirm" onclick="confirmDelete()">Yes, Delete</button>
+      <button class="btn-del-cancel" onclick="closeModal('del-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal-bg" id="cat-modal">
+  <div class="modal" style="width:min(380px,92vw)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h3 style="margin:0">Categories</h3>
+      <button onclick="closeModal('cat-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button>
+    </div>
+    <div class="cat-list" id="cat-list"></div>
+    <div class="cat-add">
+      <input type="text" id="new-cat" placeholder="New category…" onkeydown="if(event.key==='Enter')addCat()">
+      <button onclick="addCat()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGO MODAL -->
+<div class="modal-bg" id="logo-modal">
+  <div class="modal" style="width:min(370px,92vw)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="margin:0">Change Logo</h3>
+      <button onclick="closeModal('logo-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button>
+    </div>
+    <div class="logo-preview-wrap">
+      <div class="logo-preview-circ"><canvas id="logo-preview-canvas" width="96" height="96"></canvas></div>
+    </div>
+    <div class="logo-drop" onclick="document.getElementById('logo-file').click()">
+      <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
+      <div style="font-size:26px;margin-bottom:6px">📷</div>
+      <div style="font-size:13px;color:#aaa">Tap to upload your logo</div>
+      <div style="font-size:11px;color:#ccc;margin-top:3px">JPG or PNG — replaces header logo instantly</div>
+    </div>
+    <button onclick="closeModal('logo-modal')" style="width:100%;background:var(--dark);color:var(--gold);border:none;border-radius:10px;padding:13px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">Done ✓</button>
+  </div>
+</div>
+
+<!-- PRODUCT DRAWER -->
+<div class="drawer-bg" id="drawer-bg" onclick="if(event.target===this)closeDrawer()">
+  <div class="drawer">
+    <div class="drawer-hdr">
+      <span id="drawer-title">Add Product</span>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="sec-title">📸 Product Photos</div>
+      <div class="img-previews" id="img-previews"></div>
+      <div class="upload-zone" onclick="document.getElementById('photo-inp').click()">
+        <input type="file" id="photo-inp" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(event)">
+        <div style="font-size:22px;margin-bottom:5px">📷</div>
+        <div style="font-size:13px;color:#aaa" id="upload-txt">Tap to upload photos</div>
+        <div style="font-size:11px;color:#ccc;margin-top:2px">JPG, PNG · up to 10 images</div>
+      </div>
+
+      <div class="sec-title sec-gap">📋 Product Details</div>
+      <div class="form-row"><label>Product Name *</label><input type="text" id="f-name" placeholder="e.g. Nike Air Force 1 Triple Black"></div>
+      <div class="form-grid2">
+        <div class="form-row" style="margin-bottom:0"><label>Brand *</label><input type="text" id="f-brand" placeholder="e.g. Nike"></div>
+        <div class="form-row" style="margin-bottom:0"><label>Category *</label><select id="f-cat"></select></div>
+      </div>
+      <div class="form-row" style="margin-top:13px"><label>Condition</label>
+        <select id="f-cond">
+          <option>Used – Excellent</option><option>Used – Very Good</option>
+          <option selected>Used – Good</option><option>Used – Fair</option><option>Brand New</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Description</label><textarea id="f-desc" placeholder="Condition details, size notes, unique features…"></textarea></div>
+
+      <div class="sec-title sec-gap">💰 Pricing & Status</div>
+      <div class="form-grid2">
+        <div class="form-row" style="margin-bottom:0"><label>Price (KES) *</label><input type="number" id="f-price" placeholder="5000"></div>
+        <div class="form-row" style="margin-bottom:0"><label>WhatsApp Number</label><input type="text" id="f-wa"></div>
+      </div>
+      <div class="toggle-row" style="margin-top:13px">
+        <span>Available for sale</span>
+        <div class="toggle-knob" id="avail-toggle" onclick="toggleAvail()">
+          <div class="knob" id="avail-knob"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeDrawer()">Cancel</button>
+        <button class="btn-save" id="save-btn" onclick="saveProduct()">Save Product ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let sheetsUrl  = CONFIG.SHEETS_URL || "";
+let adminMode  = false, editingId=null, deletingId=null, availOn=true;
+let pendingPhotos=[], nextId=1000;
+const imgIdx={}, liked={};
+let cats=["Sneakers","Loafers","Clogs","Bags","Accessories"];
+let activeFilter="All";
+const NOW=Date.now();
+
+let products=[
+  {id:1,name:"Birkenstock Amsterdam Wool Clogs",brand:"Birkenstock",price:4500,category:"Clogs",condition:"Used – Good",available:true,postedAt:new Date(NOW-7200000).toISOString(),images:["https://images.unsplash.com/photo-1603487742131-4160ec999306?w=700&q=80"],description:"Dark grey wool felt Birkenstock Amsterdam clogs. Cork footbed with natural leather lining.",whatsapp:CONFIG.WHATSAPP},
+  {id:2,name:"Nike Air Force 1 Triple Black",brand:"Nike",price:6500,category:"Sneakers",condition:"Used – Very Good",available:true,postedAt:new Date(NOW-18000000).toISOString(),images:["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=700&q=80","https://images.unsplash.com/photo-1584735175315-9d5df23be2a2?w=700&q=80"],description:"All-black Nike Air Force 1 Low. Clean leather upper with shoe trees included.",whatsapp:CONFIG.WHATSAPP},
+  {id:3,name:"Nike Court Legacy White Canvas",brand:"Nike",price:5800,category:"Sneakers",condition:"Used – Good",available:true,postedAt:new Date(NOW-50400000).toISOString(),images:["https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=700&q=80"],description:"White canvas Nike Court Legacy. Retro low-profile silhouette with gold script logo.",whatsapp:CONFIG.WHATSAPP},
+  {id:4,name:"Black Patent Penny Loafers",brand:"Unbranded",price:3200,category:"Loafers",condition:"Used – Good",available:false,postedAt:new Date(NOW-86400000).toISOString(),images:["https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=700&q=80"],description:"High-shine black patent leather penny loafers. Classic silhouette.",whatsapp:CONFIG.WHATSAPP},
+  {id:5,name:"Chunky Horsebit Loafers",brand:"Unbranded",price:7500,category:"Loafers",condition:"Used – Excellent",available:true,postedAt:new Date(NOW-129600000).toISOString(),images:["https://images.unsplash.com/photo-1617713964959-d9a36bbc7b52?w=700&q=80"],description:"Black leather chunky lug-sole loafers with gold horsebit hardware. Very lightly worn.",whatsapp:CONFIG.WHATSAPP},
+  {id:6,name:"Adidas Sabalo Red Suede",brand:"Adidas",price:5500,category:"Sneakers",condition:"Used – Good",available:true,postedAt:new Date(NOW-172800000).toISOString(),images:["https://images.unsplash.com/photo-1578116922645-3976907a7671?w=700&q=80"],description:"Burnt red suede Adidas Sabalo with clean white cupsole. White trefoil logo.",whatsapp:CONFIG.WHATSAPP},
+];
+
+const fmt=p=>"KES "+Number(p).toLocaleString();
+const ago=d=>{const s=(Date.now()-new Date(d))/1000;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago";};
+function showToast(msg,dur=2600){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),dur);}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+// ── LOGO ──────────────────────────────────────────────────────────
+function drawDefaultLogo(canvas){
+  const ctx=canvas.getContext('2d'),W=96,H=96;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#2a2420';ctx.beginPath();ctx.arc(48,48,48,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#c8a96e';ctx.lineWidth=3.5;ctx.beginPath();ctx.arc(48,48,45,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#c8a96e';ctx.globalAlpha=0.2;ctx.beginPath();ctx.ellipse(42,52,23,33,-0.26,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle='#c8a96e';ctx.beginPath();ctx.moveTo(23,73);ctx.quadraticCurveTo(30,44,44,32);ctx.quadraticCurveTo(53,24,63,28);ctx.quadraticCurveTo(75,34,69,46);ctx.quadraticCurveTo(66,57,55,62);ctx.quadraticCurveTo(44,68,33,71);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#a07840';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(33,70);ctx.quadraticCurveTo(40,65,46,64);ctx.quadraticCurveTo(52,63,56,62);ctx.stroke();
+  [37,46,55].forEach((x,i)=>{ctx.fillStyle='#a07840';ctx.beginPath();ctx.arc(x,58-i*5.5,3.2,0,Math.PI*2);ctx.fill();});
+  ctx.fillStyle='#c8a96e';ctx.globalAlpha=0.65;ctx.fillRect(58,30,14,20);ctx.globalAlpha=1;
+  ctx.fillStyle='#c8a96e';ctx.globalAlpha=0.6;ctx.beginPath();ctx.moveTo(71,50);ctx.lineTo(82,47);ctx.lineTo(84,59);ctx.lineTo(73,62);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle='#fff';ctx.font='bold 7.5px Georgia,serif';ctx.textAlign='center';ctx.fillText('Kicks & Finds',48,90);
+}
+drawDefaultLogo(document.getElementById('logo-canvas'));
+drawDefaultLogo(document.getElementById('logo-preview-canvas'));
+
+function openLogoModal(){
+  const main=document.getElementById('logo-canvas'),prev=document.getElementById('logo-preview-canvas');
+  prev.getContext('2d').drawImage(main,0,0,96,96);openModal('logo-modal');
+}
+function handleLogoUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      ['logo-canvas','logo-preview-canvas'].forEach(id=>{
+        const c=document.getElementById(id),ctx=c.getContext('2d');
+        ctx.clearRect(0,0,96,96);ctx.save();ctx.beginPath();ctx.arc(48,48,48,0,Math.PI*2);ctx.clip();
+        ctx.drawImage(img,0,0,96,96);ctx.restore();
+        ctx.strokeStyle='#c8a96e';ctx.lineWidth=3.5;ctx.beginPath();ctx.arc(48,48,45,0,Math.PI*2);ctx.stroke();
+      });showToast('Logo updated ✓');
+    };img.src=ev.target.result;
+  };reader.readAsDataURL(file);e.target.value='';
+}
+
+// ── SHEETS ─────────────────────────────────────────────────────────
+function renderSheetsStatus(){
+  const el=document.getElementById('sheets-status');
+  if(!adminMode){el.innerHTML='';return;}
+  if(sheetsUrl){el.innerHTML='<div class="sheets-connected">🟢 Google Sheets connected — new products & edits sync automatically</div>';}
+  else{el.innerHTML=`<div class="sheets-row">🔗 Paste Apps Script URL to enable Sheets sync:<input type="text" id="sheets-inp" placeholder="https://script.google.com/macros/s/…/exec"><button onclick="connectSheets()">Connect</button></div>`;}
+}
+function connectSheets(){
+  const v=document.getElementById('sheets-inp')?.value?.trim();
+  if(!v||!v.startsWith('https://')){showToast('⚠️ Enter a valid https:// URL');return;}
+  sheetsUrl=v;renderSheetsStatus();showToast('✅ Sheets connected!');
+}
+async function sheetsPost(body){
+  if(!sheetsUrl)return null;
+  try{const r=await fetch(sheetsUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json();}
+  catch(e){return{error:e.message};}
+}
+
+// ── GRID ───────────────────────────────────────────────────────────
+function renderPills(){
+  document.getElementById('pills').innerHTML=['All',...cats].map(c=>`<button class="pill${c===activeFilter?' on':''}" onclick="setFilter('${c}')">${c}</button>`).join('');
+}
+function setFilter(c){activeFilter=c;renderPills();renderGrid();}
+
+function renderGrid(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const sorted=[...products].sort((a,b)=>new Date(b.postedAt)-new Date(a.postedAt));
+  const filtered=sorted.filter(p=>{
+    const ms=p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q);
+    const mc=activeFilter==='All'||p.category===activeFilter;
+    return ms&&mc;
+  });
+  document.getElementById('count-lbl').textContent=filtered.length+' item'+(filtered.length!==1?'s':'');
+  const grid=document.getElementById('grid');const empty=document.getElementById('empty');
+  grid.innerHTML='';
+  if(!filtered.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  filtered.forEach((p,i)=>{
+    const idx=imgIdx[p.id]||0,imgs=p.images||[],isLiked=liked[p.id];
+    const wa=`https://wa.me/${p.whatsapp||CONFIG.WHATSAPP}?text=${encodeURIComponent(`Hi! I'm interested in the *${p.name}* listed at *${fmt(p.price)}*. Is it still available? 👟`)}`;
+    const lipa=`https://wa.me/${p.whatsapp||CONFIG.WHATSAPP}?text=${encodeURIComponent(`Hi! I'd like to book the *${p.name}* (${fmt(p.price)}) on Lipa Pole Pole. What's the deposit? 🙏`)}`;
+    const imgHTML=imgs.length?`<img src="${imgs[idx%imgs.length]}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`:`<div class="img-ph">👟</div>`;
+    const dotsHTML=imgs.length>1?`<div class="dots">${imgs.map((_,di)=>`<button class="dot${di===idx?' on':''}" style="width:${di===idx?15:5}px" onclick="setImg(${p.id},${di});event.stopPropagation()"></button>`).join('')}</div>`:'';
+    const navHTML=imgs.length>1?`<button onclick="prevImg(${p.id})" style="position:absolute;left:0;top:0;bottom:0;width:30%;background:none;border:none;cursor:pointer"></button><button onclick="nextImg(${p.id})" style="position:absolute;right:0;top:0;bottom:0;width:30%;background:none;border:none;cursor:pointer"></button>`:'';
+    const adminBtns=adminMode?`<div class="admin-btns"><button class="edit-btn" onclick="openDrawer(${p.id})">✏️ Edit</button><button class="del-btn" onclick="askDelete(${p.id})">🗑️ Delete</button></div>`:'';
+    const shopBtns=(!adminMode&&p.available)?`<div class="btn-row"><a class="wa-btn" href="${wa}" target="_blank">💬 Enquire</a><a class="lipa-btn" href="${lipa}" target="_blank">💳 Lipa Pole Pole</a></div>`:'';
+    const card=document.createElement('div');
+    card.className='card';card.style.animationDelay=(i*0.07)+'s';
+    card.innerHTML=`<div class="img-wrap">${imgHTML}${!p.available?'<div class="sold-ov"><div class="sold-tag">SOLD</div></div>':''}<div class="cond-tag">${p.condition}</div><button class="like-btn" onclick="toggleLike(${p.id})">${isLiked?'❤️':'🤍'}</button>${dotsHTML}${navHTML}</div><div class="card-body"><div class="card-meta"><span class="brand-lbl">${p.brand}</span><span class="time-lbl">🕐 ${ago(p.postedAt)}</span></div><div class="card-name">${p.name}</div><div class="card-desc">${p.description||''}</div><div class="avail ${p.available?'yes':'no'}">${p.available?'✅ Available':'❌ Sold'}</div><div class="price-lbl">${fmt(p.price)}</div>${adminBtns}${shopBtns}</div>`;
+    grid.appendChild(card);
+  });
+}
+function setImg(id,i){imgIdx[id]=i;renderGrid();}
+function nextImg(id){const p=products.find(x=>x.id===id);if(!p?.images?.length)return;imgIdx[id]=((imgIdx[id]||0)+1)%p.images.length;renderGrid();}
+function prevImg(id){const p=products.find(x=>x.id===id);if(!p?.images?.length)return;imgIdx[id]=((imgIdx[id]||0)-1+p.images.length)%p.images.length;renderGrid();}
+function toggleLike(id){liked[id]=!liked[id];renderGrid();}
+
+// ── ADMIN ──────────────────────────────────────────────────────────
+function adminClick(){
+  if(adminMode){adminMode=false;document.getElementById('admin-btn').textContent='Admin';document.getElementById('admin-btn').classList.remove('on');document.getElementById('cats-btn').style.display='none';document.getElementById('admin-bar').style.display='none';renderSheetsStatus();renderGrid();showToast('Admin mode off');return;}
+  openModal('pin-modal');setTimeout(()=>document.getElementById('pin-inp').focus(),80);
+}
+function submitPin(){
+  if(document.getElementById('pin-inp').value===CONFIG.ADMIN_PIN){
+    adminMode=true;closeModal('pin-modal');document.getElementById('pin-inp').value='';
+    document.getElementById('admin-btn').textContent='✏️ Editing';document.getElementById('admin-btn').classList.add('on');
+    document.getElementById('cats-btn').style.display='';document.getElementById('admin-bar').style.display='block';
+    renderSheetsStatus();renderGrid();showToast('Admin mode on 🔓');
+  } else {document.getElementById('pin-inp').classList.add('err');document.getElementById('pin-err').style.display='block';}
+}
+
+// ── DRAWER ─────────────────────────────────────────────────────────
+function openDrawer(id){
+  editingId=id;pendingPhotos=[];
+  const p=id?products.find(x=>x.id===id):null;
+  document.getElementById('drawer-title').textContent=id?'Edit Product':'Add Product';
+  document.getElementById('f-name').value=p?p.name:'';
+  document.getElementById('f-brand').value=p?p.brand:'';
+  document.getElementById('f-price').value=p?p.price:'';
+  document.getElementById('f-desc').value=p?p.description||'':'';
+  document.getElementById('f-wa').value=p?p.whatsapp||CONFIG.WHATSAPP:CONFIG.WHATSAPP;
+  populateCatSelect(p?p.category:'');
+  const cond=document.getElementById('f-cond');
+  if(p){for(let i=0;i<cond.options.length;i++){if(cond.options[i].text===p.condition){cond.selectedIndex=i;break;}}}
+  else{cond.selectedIndex=2;}
+  availOn=p?p.available:true;setToggle(availOn);
+  if(p?.images)pendingPhotos=[...p.images];
+  renderPreviews();
+  document.getElementById('drawer-bg').style.display='flex';
+  document.getElementById('save-btn').textContent='Save Product ✓';
+  document.getElementById('save-btn').disabled=false;
+}
+function closeDrawer(){document.getElementById('drawer-bg').style.display='none';pendingPhotos=[];}
+function populateCatSelect(current){document.getElementById('f-cat').innerHTML=cats.map(c=>`<option value="${c}"${c===current?' selected':''}>${c}</option>`).join('');}
+function toggleAvail(){availOn=!availOn;setToggle(availOn);}
+function setToggle(on){document.getElementById('avail-toggle').style.background=on?'#2d6a4f':'#ccc';document.getElementById('avail-knob').style.left=on?'23px':'3px';}
+async function handlePhotoUpload(e){
+  document.getElementById('upload-txt').textContent='Loading…';
+  const files=Array.from(e.target.files).slice(0,10-pendingPhotos.length);
+  for(const f of files){const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f);});pendingPhotos.push(b64);}
+  renderPreviews();document.getElementById('upload-txt').textContent='Tap to upload photos';e.target.value='';
+}
+function renderPreviews(){document.getElementById('img-previews').innerHTML=pendingPhotos.map((src,i)=>`<div class="img-preview"><img src="${src}" alt=""><button onclick="removePhoto(${i})">×</button></div>`).join('');}
+function removePhoto(i){pendingPhotos.splice(i,1);renderPreviews();}
+
+async function saveProduct(){
+  const name=document.getElementById('f-name').value.trim();
+  const brand=document.getElementById('f-brand').value.trim();
+  const price=parseFloat(document.getElementById('f-price').value);
+  const category=document.getElementById('f-cat').value;
+  const condition=document.getElementById('f-cond').value;
+  const description=document.getElementById('f-desc').value.trim();
+  const whatsapp=document.getElementById('f-wa').value.trim()||CONFIG.WHATSAPP;
+  if(!name||!brand||!price){showToast('⚠️ Name, Brand & Price are required');return;}
+  const btn=document.getElementById('save-btn');btn.textContent='Saving…';btn.disabled=true;
+  if(editingId){
+    const idx=products.findIndex(x=>x.id===editingId);
+    if(idx>-1)products[idx]={...products[idx],name,brand,price,category,condition,description,whatsapp,available:availOn,images:pendingPhotos};
+    const res=await sheetsPost({action:'updateProduct',...products[idx],images:pendingPhotos.join('|')});
+    showToast(res?.success?'Updated & synced to Sheets ✓':'Product updated ✓');
+  } else {
+    const np={id:nextId++,name,brand,price,category,condition,description,whatsapp,available:availOn,images:pendingPhotos,postedAt:new Date().toISOString()};
+    products.unshift(np);
+    const res=await sheetsPost({action:'addProduct',...np,images:np.images.join('|')});
+    showToast(res?.success?'✅ Added & saved to Google Sheets!':'Product added ✓');
+  }
+  btn.textContent='Save Product ✓';btn.disabled=false;
+  closeDrawer();renderGrid();renderPills();
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────
+function askDelete(id){deletingId=id;openModal('del-modal');}
+async function confirmDelete(){
+  if(deletingId){const res=await sheetsPost({action:'deleteProduct',id:deletingId});products=products.filter(x=>x.id!==deletingId);deletingId=null;showToast(res?.success?'Deleted from shop & Sheets ✓':'Listing removed');}
+  closeModal('del-modal');renderGrid();
+}
+
+// ── CATEGORIES ──────────────────────────────────────────────────────
+function openCatModal(){renderCatList();openModal('cat-modal');}
+function renderCatList(){
+  document.getElementById('cat-list').innerHTML=cats.map(c=>`<div class="cat-chip">${c}<button onclick="removeCat('${c}')">×</button></div>`).join('');
+  populateCatSelect(document.getElementById('f-cat')?.value||'');
+}
+function addCat(){const v=document.getElementById('new-cat').value.trim();if(!v||cats.includes(v))return;cats.push(v);document.getElementById('new-cat').value='';renderCatList();renderPills();showToast('Category added: '+v);}
+function removeCat(c){cats=cats.filter(x=>x!==c);if(activeFilter===c)activeFilter='All';renderCatList();renderPills();renderGrid();}
+
+// ── INIT ────────────────────────────────────────────────────────────
+renderPills();
+renderGrid();
+</script>
+</body>
+</html>
