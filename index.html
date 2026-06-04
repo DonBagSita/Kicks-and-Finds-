@@ -155,6 +155,8 @@ header{background:var(--header);position:sticky;top:0;z-index:200;box-shadow:0 2
 .btn-seller{border-color:#333;background:transparent;color:#777}
 .btn-seller.on{background:#2d2420;color:var(--gold);border-color:var(--gold)}
 .btn-cats{border-color:#333;background:transparent;color:#777;display:none}
+.btn-seller{border-color:#333;background:transparent;color:#777;display:none!important}
+.btn-seller.admin-visible{display:inline-flex!important}
 .liked-badge{background:var(--pink);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px;display:none}
 
 /* THEME TOGGLE BUTTON */
@@ -388,6 +390,35 @@ footer{background:var(--header);padding:30px 20px;text-align:center;transition:b
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .sp-grid{grid-template-columns:1fr}
 }
+
+/* ════════════════════════════════════════════════════
+   SITA CREDIT ANIMATIONS
+   ════════════════════════════════════════════════════ */
+@keyframes sitaFadeUp   {from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sitaGlow     {0%,100%{text-shadow:0 0 8px rgba(200,169,110,0)}50%{text-shadow:0 0 18px rgba(200,169,110,.7),0 0 40px rgba(200,169,110,.3)}}
+@keyframes sitaHeartBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.35)}30%{transform:scale(1)}45%{transform:scale(1.2)}60%{transform:scale(1)}}
+@keyframes sitaSparkle  {0%,100%{opacity:0;transform:translate(0,0) scale(0)}50%{opacity:1;transform:translate(var(--tx),var(--ty)) scale(1)}}
+@keyframes sitaUnderline{from{width:0}to{width:100%}}
+@keyframes sitaShimmer  {0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes sitaFloat    {0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes sitaLetterPop{0%{opacity:0;transform:translateY(6px) scale(.8)}60%{transform:translateY(-2px) scale(1.05)}100%{opacity:1;transform:translateY(0) scale(1)}}
+
+.sita-credit{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:center}
+.sita-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;font-family:'Playfair Display',serif;font-size:12px;letter-spacing:.06em}
+.sita-word,.sita-amp{color:#555;opacity:0;animation:sitaFadeUp .6s ease forwards;animation-delay:var(--d)}
+[data-theme="dark"] .sita-word,[data-theme="dark"] .sita-amp{color:#4a4845}
+.sita-amp{color:var(--gold)!important;font-style:normal}
+.sita-heart-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;opacity:0;animation:sitaFadeUp .6s ease forwards;animation-delay:var(--d)}
+.sita-heart{width:14px;height:14px;flex-shrink:0;animation:sitaHeartBeat 2.4s ease-in-out 1.6s infinite;filter:drop-shadow(0 0 4px rgba(231,76,60,.5))}
+.sita-spark{position:absolute;font-size:8px;color:var(--gold);opacity:0;animation:sitaSparkle 2.4s ease-in-out infinite}
+.s1{--tx:-10px;--ty:-9px;animation-delay:1.7s}.s2{--tx:10px;--ty:-8px;animation-delay:1.9s}.s3{--tx:-9px;--ty:8px;animation-delay:2.1s;font-size:6px}.s4{--tx:8px;--ty:9px;animation-delay:2.3s}
+.sita-name{position:relative;display:inline-flex;align-items:center;gap:0;opacity:0;animation:sitaFadeUp .6s ease var(--d) forwards,sitaFloat 3.5s ease-in-out 2s infinite}
+.sita-s,.sita-i,.sita-t,.sita-a{font-family:'Playfair Display',serif;font-weight:800;font-size:15px;background:linear-gradient(90deg,#c8a96e,#f0d48a,#c8a96e,#a07040,#c8a96e);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:sitaLetterPop .5s ease both,sitaShimmer 3s linear infinite;display:inline-block}
+.sita-s{animation-delay:.95s,2.2s}.sita-i{animation-delay:1.05s,2.4s}.sita-t{animation-delay:1.15s,2.6s}.sita-a{animation-delay:1.25s,2.8s}
+.sita-underline{position:absolute;bottom:-2px;left:0;height:1.5px;width:0;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sitaUnderline .6s ease 1.5s forwards;border-radius:1px}
+.sita-credit:hover .sita-name{animation:sitaFloat 1.2s ease-in-out infinite,sitaShimmer 1.5s linear infinite}
+.sita-credit:hover .sita-heart{animation:sitaHeartBeat .8s ease-in-out infinite}
+.sita-credit:hover .sita-spark{animation:sitaSparkle .9s ease-in-out infinite}
 </style>
 </head>
 <body>
@@ -516,7 +547,26 @@ footer{background:var(--header);padding:30px 20px;text-align:center;transition:b
 <footer>
   <div class="footer-logo">Kicks <span style="color:#fff">&</span> Finds</div>
   <div class="footer-sub">Pre-loved footwear & finds · Mombasa, Kenya · DM to cop 👟</div>
-  <div style="margin-top:14px;padding-top:12px;border-top:1px solid #2a2a2a;font-family:'Playfair Display',serif;font-size:11px;color:#444;letter-spacing:.08em">Designed <em style="color:#c8a96e;font-style:normal">& </em>crafted by <span style="color:#c8a96e;font-weight:600">Sita</span></div>
+  <div class="sita-credit" id="sita-credit">
+    <div class="sita-line">
+      <span class="sita-word" style="--d:0s">Designed</span>
+      <span class="sita-amp" style="--d:.15s">&amp;</span>
+      <span class="sita-word" style="--d:.3s">crafted</span>
+      <span class="sita-word" style="--d:.45s">with</span>
+      <span class="sita-heart-wrap" style="--d:.6s">
+        <svg class="sita-heart" viewBox="0 0 24 24" fill="#e74c3c" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span class="sita-spark s1">✦</span>
+        <span class="sita-spark s2">✦</span>
+        <span class="sita-spark s3">·</span>
+        <span class="sita-spark s4">✦</span>
+      </span>
+      <span class="sita-word" style="--d:.75s">by</span>
+      <span class="sita-name" style="--d:.9s">
+        <span class="sita-s">S</span><span class="sita-i">i</span><span class="sita-t">t</span><span class="sita-a">a</span>
+        <span class="sita-underline"></span>
+      </span>
+    </div>
+  </div>
 </footer>
 
 <!-- MODALS -->
@@ -874,8 +924,8 @@ function prevImg(id){const p=products.find(x=>x.id===id);if(!p?.images?.length)r
 // ════════════════════════════════════════════════════════════
 //  ADMIN
 // ════════════════════════════════════════════════════════════
-function adminClick(){ if(adminMode){ adminMode=false; document.getElementById('admin-btn').textContent='Admin'; document.getElementById('admin-btn').classList.remove('on'); document.getElementById('cats-btn').style.display='none'; document.getElementById('admin-bar').style.display='none'; document.getElementById('setup-panel').style.display='none'; renderGrid(); toast('Admin mode off'); return; } openModal('pin-modal'); setTimeout(()=>document.getElementById('pin-inp').focus(),80); }
-function submitPin(){ if(document.getElementById('pin-inp').value===SITE_CONFIG.ADMIN_PIN){ adminMode=true; closeModal('pin-modal'); document.getElementById('pin-inp').value=''; document.getElementById('admin-btn').textContent='✏️ Editing'; document.getElementById('admin-btn').classList.add('on'); document.getElementById('cats-btn').style.display=''; document.getElementById('admin-bar').style.display='block'; document.getElementById('setup-panel').style.display='block'; refreshSetupPanel(); renderGrid(); toast('Admin mode on 🔓'); } else { document.getElementById('pin-inp').classList.add('err'); document.getElementById('pin-err').style.display='block'; } }
+function adminClick(){ if(adminMode){ adminMode=false; document.getElementById('admin-btn').textContent='Admin'; document.getElementById('admin-btn').classList.remove('on'); document.getElementById('cats-btn').style.display='none'; document.getElementById('seller-btn').classList.remove('admin-visible'); if(sellerOpen){ sellerOpen=false; document.getElementById('seller-panel').style.display='none'; document.getElementById('seller-btn').textContent='📊 Seller'; document.getElementById('seller-btn').classList.remove('on'); } document.getElementById('admin-bar').style.display='none'; document.getElementById('setup-panel').style.display='none'; renderGrid(); toast('Admin mode off'); return; } openModal('pin-modal'); setTimeout(()=>document.getElementById('pin-inp').focus(),80); }
+function submitPin(){ if(document.getElementById('pin-inp').value===SITE_CONFIG.ADMIN_PIN){ adminMode=true; closeModal('pin-modal'); document.getElementById('pin-inp').value=''; document.getElementById('admin-btn').textContent='✏️ Editing'; document.getElementById('admin-btn').classList.add('on'); document.getElementById('cats-btn').style.display=''; document.getElementById('seller-btn').classList.add('admin-visible'); document.getElementById('admin-bar').style.display='block'; document.getElementById('setup-panel').style.display='block'; refreshSetupPanel(); renderGrid(); toast('Admin mode on 🔓'); } else { document.getElementById('pin-inp').classList.add('err'); document.getElementById('pin-err').style.display='block'; } }
 
 // ════════════════════════════════════════════════════════════
 //  DRAWER
