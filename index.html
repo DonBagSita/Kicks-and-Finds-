@@ -737,7 +737,7 @@ const DEMO=[
 
 async function loadProducts(){
   if(CFG.ok && sb){
-    document.getElementById('loading-msg').textContent='Loading from Supabase…';
+    document.getElementById('loading-msg').textContent='Organising the closet…';
     const rows = await dbLoad();
     if(rows){
       products=rows;
